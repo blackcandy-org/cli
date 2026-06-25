@@ -4,11 +4,26 @@ A Rust command-line client for [Black Candy](https://github.com/blackcandy-org/b
 
 ## Install
 
+Install the latest release with Cargo:
+
+```sh
+cargo install blackcandy-cli
+```
+
+Or install with Homebrew:
+
+```sh
+brew tap blackcandy-org/cli
+brew install blackcandy-cli
+```
+
+To install from a local checkout:
+
 ```sh
 cargo install --path .
 ```
 
-This installs the `blackcandy` command from the current checkout.
+All install methods provide the `blackcandy` command.
 
 Playback uses `mpv` by default, so install it if you want to play music directly
 from the terminal:

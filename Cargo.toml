@@ -2,6 +2,13 @@
 name = "blackcandy-cli"
 version = "0.1.0"
 edition = "2024"
+description = "A command-line client for Black Candy music servers"
+license = "MIT"
+repository = "https://github.com/blackcandy-org/cli"
+homepage = "https://github.com/blackcandy-org/cli"
+readme = "README.md"
+keywords = ["blackcandy", "music", "cli", "streaming"]
+categories = ["command-line-utilities", "multimedia::audio"]
 
 [[bin]]
 name = "blackcandy"
