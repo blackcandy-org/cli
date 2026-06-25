@@ -4,10 +4,10 @@ A Rust command-line client for [Black Candy](https://github.com/blackcandy-org/b
 
 ## Install
 
-Install the latest release with Cargo:
+Install the latest release with Cargo from the Git tag:
 
 ```sh
-cargo install blackcandy-cli
+cargo install --git https://github.com/blackcandy-org/cli --tag v0.1.0 blackcandy-cli
 ```
 
 Or install with Homebrew:
