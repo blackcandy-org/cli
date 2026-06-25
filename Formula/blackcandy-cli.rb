@@ -12,14 +12,14 @@ class BlackcandyCli < Formula
     system "cargo", "install", *std_cargo_args
   end
 
-  test do
-    assert_match "A command-line client for Black Candy", shell_output("#{bin}/blackcandy --help")
-  end
-
   def caveats
     <<~EOS
       Playback uses mpv by default. Install it with:
         brew install mpv
     EOS
+  end
+
+  test do
+    assert_match "A command-line client for Black Candy", shell_output("#{bin}/blackcandy --help")
   end
 end
