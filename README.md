@@ -13,7 +13,7 @@ cargo install blackcandy-cli
 Or install with Homebrew:
 
 ```sh
-brew tap blackcandy-org/cli
+brew tap blackcandy-org/cli https://github.com/blackcandy-org/cli
 brew install blackcandy-cli
 ```
 
