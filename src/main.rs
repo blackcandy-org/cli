@@ -9,7 +9,7 @@ use std::io::{self, Write};
 
 use crate::{
     api::{ApiClient, SongQuery, validate_limit},
-    config::{Config, config_path},
+    config::{Config, config_path, remove_config},
 };
 
 #[derive(Debug, Parser)]
@@ -25,6 +25,8 @@ struct Cli {
 enum Command {
     /// Log in to a Black Candy server and store an API token.
     Login(LoginArgs),
+    /// Log out by removing the stored credentials.
+    Logout,
     /// Show the configured server and current config path.
     Config,
     /// Show Black Candy server version information.
@@ -194,6 +196,7 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Command::Login(args) => login(args).await,
+        Command::Logout => logout(),
         Command::Config => show_config(),
         command => {
             let config = Config::load()?;
@@ -234,6 +237,15 @@ async fn login(args: LoginArgs) -> Result<()> {
         }
     );
     println!("Config saved to {}.", config_path()?.display());
+    Ok(())
+}
+
+fn logout() -> Result<()> {
+    if remove_config()? {
+        println!("Logged out. Removed config at {}.", config_path()?.display());
+    } else {
+        println!("Not logged in; nothing to remove.");
+    }
     Ok(())
 }
 
@@ -299,7 +311,9 @@ async fn run_authenticated(command: Command, config: Config, client: ApiClient) 
         Command::Queue(args) => run_queue(args, &client).await?,
         Command::Favorite(args) => run_favorite(args, &client).await?,
         Command::Playlist(args) => run_playlist(args, &client).await?,
-        Command::Login(_) | Command::Config => unreachable!("handled before authentication setup"),
+        Command::Login(_) | Command::Logout | Command::Config => {
+            unreachable!("handled before authentication setup")
+        }
     }
 
     Ok(())

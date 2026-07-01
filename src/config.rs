@@ -59,6 +59,19 @@ impl Config {
     }
 }
 
+/// Remove the stored config file. Returns `true` if a file was deleted and
+/// `false` if there was nothing to remove.
+pub fn remove_config() -> Result<bool> {
+    let path = config_path()?;
+    if !path.exists() {
+        return Ok(false);
+    }
+
+    fs::remove_file(&path)
+        .with_context(|| format!("failed to remove config at {}", path.display()))?;
+    Ok(true)
+}
+
 pub fn config_path() -> Result<PathBuf> {
     if let Ok(path) = std::env::var("BLACKCANDY_CONFIG") {
         return Ok(PathBuf::from(path));
