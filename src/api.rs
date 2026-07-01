@@ -76,6 +76,33 @@ impl ApiClient {
         self.get(&format!("songs/{id}"), &[]).await
     }
 
+    /// Download the raw bytes of an audio stream, authenticated with the stored
+    /// token. `url` may be absolute or relative to the server.
+    pub async fn stream_bytes(&self, url: &str) -> Result<Vec<u8>> {
+        let absolute = ensure_absolute_url(&self.base_url, url)?;
+        let token = self
+            .token
+            .as_ref()
+            .ok_or_else(|| anyhow!("not logged in; run `blackcandy login <server>` first"))?;
+
+        let response = self
+            .http
+            .get(absolute)
+            .header(AUTHORIZATION, format!("Token token=\"{token}\""))
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            return Err(read_error(response).await);
+        }
+
+        let bytes = response
+            .bytes()
+            .await
+            .context("failed to download audio stream")?;
+        Ok(bytes.to_vec())
+    }
+
     pub async fn search(&self, query: &str) -> Result<SearchResponse> {
         self.get("search", &[("query", query)]).await
     }

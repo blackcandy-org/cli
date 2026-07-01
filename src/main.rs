@@ -294,7 +294,8 @@ async fn run_authenticated(command: Command, config: Config, client: ApiClient) 
                 &song,
                 args.player.as_deref().or(config.player.as_deref()),
                 args.dry_run,
-            )?;
+            )
+            .await?;
         }
         Command::Queue(args) => run_queue(args, &client).await?,
         Command::Favorite(args) => run_favorite(args, &client).await?,

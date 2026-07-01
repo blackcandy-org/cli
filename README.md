@@ -25,14 +25,15 @@ cargo install --path .
 
 All install methods provide the `blackcandy` command.
 
-Playback uses `mpv` by default, so install it if you want to play music directly
-from the terminal:
+Playback is built in, so no external player is required. On Linux the ALSA
+development headers are needed to build the audio backend:
 
 ```sh
-brew install mpv
+sudo apt install libasound2-dev
 ```
 
-You can also pass a different player with `--player`.
+You can still hand playback off to an external player (for example `mpv`) with
+`--player`, in which case that command must be installed.
 
 ## Quick Start
 
