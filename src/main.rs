@@ -3,7 +3,7 @@ mod config;
 mod output;
 mod player;
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand};
 use std::io::{self, Write};
 
@@ -54,8 +54,8 @@ enum Command {
 
 #[derive(Debug, Args)]
 struct LoginArgs {
-    /// Black Candy server URL, for example http://localhost:3000.
-    server: String,
+    /// Black Candy server URL, for example http://localhost:3000. If omitted, you will be prompted.
+    server: Option<String>,
     /// Account email. If omitted, you will be prompted.
     #[arg(short, long, env = "BLACKCANDY_EMAIL")]
     email: Option<String>,
@@ -204,6 +204,13 @@ async fn main() -> Result<()> {
 }
 
 async fn login(args: LoginArgs) -> Result<()> {
+    let server = match args.server {
+        Some(server) => server,
+        None => prompt_line("Server: ")?,
+    };
+    if server.is_empty() {
+        bail!("server address is required");
+    }
     let email = match args.email {
         Some(email) => email,
         None => prompt_line("Email: ")?,
@@ -213,11 +220,11 @@ async fn login(args: LoginArgs) -> Result<()> {
         None => rpassword::prompt_password("Password: ")?,
     };
 
-    let client = ApiClient::new(&args.server, None)?;
+    let client = ApiClient::new(&server, None)?;
     let response = client.login(&email, &password).await?;
 
     let config = Config {
-        server: Some(args.server),
+        server: Some(server),
         email: Some(response.user.email.clone()),
         api_token: Some(response.user.api_token),
         player: args.player,
