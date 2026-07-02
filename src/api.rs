@@ -13,7 +13,7 @@ pub struct ApiClient {
 
 impl ApiClient {
     pub fn new(server: &str, token: Option<String>) -> Result<Self> {
-        let mut base_url = Url::parse(server).context("server must be a valid URL")?;
+        let mut base_url = parse_server_url(server)?;
         if !base_url.path().ends_with('/') {
             base_url.set_path(&format!("{}/", base_url.path()));
         }
@@ -361,6 +361,18 @@ pub struct SearchResponse {
     pub songs: Vec<Song>,
 }
 
+/// Parse a user-supplied server address, defaulting to the `http` scheme when
+/// none is given so both `localhost:3000` and `http://localhost:3000` work.
+pub fn parse_server_url(server: &str) -> Result<Url> {
+    let candidate = if server.contains("://") {
+        server.to_owned()
+    } else {
+        format!("http://{server}")
+    };
+
+    Url::parse(&candidate).context("server must be a valid URL")
+}
+
 pub fn ensure_absolute_url(server: &Url, maybe_url: &str) -> Result<String> {
     if Url::parse(maybe_url).is_ok() {
         return Ok(maybe_url.to_owned());
@@ -374,5 +386,28 @@ pub fn validate_limit(limit: u32) -> Result<u32> {
         Ok(limit)
     } else {
         bail!("limit must be between 1 and 100")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn adds_default_scheme_when_missing() {
+        let url = parse_server_url("localhost:3000").unwrap();
+        assert_eq!(url.as_str(), "http://localhost:3000/");
+    }
+
+    #[test]
+    fn preserves_explicit_scheme() {
+        assert_eq!(
+            parse_server_url("https://music.example.com").unwrap().as_str(),
+            "https://music.example.com/"
+        );
+        assert_eq!(
+            parse_server_url("http://localhost:3000").unwrap().as_str(),
+            "http://localhost:3000/"
+        );
     }
 }
