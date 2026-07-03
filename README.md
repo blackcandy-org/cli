@@ -48,6 +48,9 @@ Log in with the default development account:
 blackcandy login http://localhost:3000 --email admin@admin.com
 ```
 
+The server address may omit the scheme; `localhost:3000` is treated as
+`http://localhost:3000`.
+
 The default password is `foobar`. Any argument you omit (including the server
 address) is prompted for interactively, so `blackcandy login` on its own walks
 through each field.

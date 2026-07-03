@@ -224,7 +224,7 @@ async fn login(args: LoginArgs) -> Result<()> {
     let response = client.login(&email, &password).await?;
 
     let config = Config {
-        server: Some(server),
+        server: Some(client.server().as_str().to_owned()),
         email: Some(response.user.email.clone()),
         api_token: Some(response.user.api_token),
         player: args.player,
