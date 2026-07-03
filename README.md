@@ -32,9 +32,6 @@ development headers are needed to build the audio backend:
 sudo apt install libasound2-dev
 ```
 
-You can still hand playback off to an external player (for example `mpv`) with
-`--player`, in which case that command must be installed.
-
 ## Quick Start
 
 Run a local Black Candy server:
@@ -65,7 +62,7 @@ Play a song:
 blackcandy play 1
 ```
 
-To print the stream URL without launching a player:
+To print the stream URL without playing it:
 
 ```sh
 blackcandy play 1 --dry-run
@@ -97,7 +94,7 @@ blackcandy playlist list --json
 
 ## Configuration
 
-Login stores the server URL, email, API token, and optional player command in:
+Login stores the server URL, email, and API token in:
 
 ```sh
 blackcandy config

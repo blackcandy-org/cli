@@ -62,9 +62,6 @@ struct LoginArgs {
     /// Account password. Prefer the prompt or BLACKCANDY_PASSWORD over shell history.
     #[arg(short, long, env = "BLACKCANDY_PASSWORD", hide_env_values = true)]
     password: Option<String>,
-    /// Player command to use for playback. Defaults to mpv.
-    #[arg(long)]
-    player: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -108,12 +105,9 @@ struct SongListArgs {
 #[derive(Debug, Args)]
 struct PlayArgs {
     song_id: u64,
-    /// Print the authenticated stream URL instead of starting a player.
+    /// Print the authenticated stream URL instead of playing it.
     #[arg(long)]
     dry_run: bool,
-    /// Player command to use for this invocation.
-    #[arg(long)]
-    player: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -198,7 +192,7 @@ async fn main() -> Result<()> {
         command => {
             let config = Config::load()?;
             let client = configured_client(&config)?;
-            run_authenticated(command, config, client).await
+            run_authenticated(command, client).await
         }
     }
 }
@@ -220,7 +214,6 @@ async fn login(args: LoginArgs) -> Result<()> {
         server: Some(args.server),
         email: Some(response.user.email.clone()),
         api_token: Some(response.user.api_token),
-        player: args.player,
     };
     config.save()?;
 
@@ -262,11 +255,10 @@ fn show_config() -> Result<()> {
             "<missing>"
         }
     );
-    println!("Player: {}", config.player.as_deref().unwrap_or("mpv"));
     Ok(())
 }
 
-async fn run_authenticated(command: Command, config: Config, client: ApiClient) -> Result<()> {
+async fn run_authenticated(command: Command, client: ApiClient) -> Result<()> {
     match command {
         Command::System { json } => {
             let system = client.system().await?;
@@ -289,13 +281,7 @@ async fn run_authenticated(command: Command, config: Config, client: ApiClient) 
         Command::Play(args) => {
             let song = client.song(args.song_id).await?;
             println!("Playing: {} - {}", song.artist_name, song.name);
-            player::play(
-                &client,
-                &song,
-                args.player.as_deref().or(config.player.as_deref()),
-                args.dry_run,
-            )
-            .await?;
+            player::play(&client, &song, args.dry_run).await?;
         }
         Command::Queue(args) => run_queue(args, &client).await?,
         Command::Favorite(args) => run_favorite(args, &client).await?,

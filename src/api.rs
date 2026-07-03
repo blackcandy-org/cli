@@ -29,10 +29,6 @@ impl ApiClient {
         &self.base_url
     }
 
-    pub fn token(&self) -> Option<&str> {
-        self.token.as_deref()
-    }
-
     pub async fn login(&self, email: &str, password: &str) -> Result<LoginResponse> {
         self.post_without_auth(
             "sessions",

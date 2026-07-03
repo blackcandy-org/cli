@@ -7,7 +7,6 @@ pub struct Config {
     pub server: Option<String>,
     pub email: Option<String>,
     pub api_token: Option<String>,
-    pub player: Option<String>,
 }
 
 impl Config {
