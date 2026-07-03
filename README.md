@@ -32,6 +32,10 @@ development headers are needed to build the audio backend:
 sudo apt install libasound2-dev
 ```
 
+This is a build-time dependency only. At runtime the binary just needs the
+`libasound2` runtime library, which any Linux system with working audio
+already has.
+
 ## Quick Start
 
 Run a local Black Candy server:
