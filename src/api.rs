@@ -402,7 +402,9 @@ mod tests {
     #[test]
     fn preserves_explicit_scheme() {
         assert_eq!(
-            parse_server_url("https://music.example.com").unwrap().as_str(),
+            parse_server_url("https://music.example.com")
+                .unwrap()
+                .as_str(),
             "https://music.example.com/"
         );
         assert_eq!(
