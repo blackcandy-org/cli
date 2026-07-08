@@ -25,14 +25,16 @@ cargo install --path .
 
 All install methods provide the `blackcandy` command.
 
-Playback uses `mpv` by default, so install it if you want to play music directly
-from the terminal:
+Playback is built in, so no external player is required. On Linux the ALSA
+development headers are needed to build the audio backend:
 
 ```sh
-brew install mpv
+sudo apt install libasound2-dev
 ```
 
-You can also pass a different player with `--player`.
+This is a build-time dependency only. At runtime the binary just needs the
+`libasound2` runtime library, which any Linux system with working audio
+already has.
 
 ## Quick Start
 
@@ -69,7 +71,7 @@ Play a song:
 blackcandy play 1
 ```
 
-To print the stream URL without launching a player:
+To print the stream URL without playing it:
 
 ```sh
 blackcandy play 1 --dry-run
@@ -101,7 +103,7 @@ blackcandy playlist list --json
 
 ## Configuration
 
-Login stores the server URL, email, API token, and optional player command in:
+Login stores the server URL, email, and API token in:
 
 ```sh
 blackcandy config

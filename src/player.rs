@@ -1,38 +1,32 @@
-use anyhow::{Context, Result, anyhow};
-use std::process::Command;
+use anyhow::{Context, Result};
+use std::io::Cursor;
 
 use crate::api::{ApiClient, Song, ensure_absolute_url};
 
-pub fn play(client: &ApiClient, song: &Song, player: Option<&str>, dry_run: bool) -> Result<()> {
-    let url = ensure_absolute_url(client.server(), &song.url)?;
-    let token = client
-        .token()
-        .ok_or_else(|| anyhow!("not logged in; run `blackcandy login <server>` first"))?;
-    let auth_header = format!("Authorization: Token token=\"{token}\"");
-
+pub async fn play(client: &ApiClient, song: &Song, dry_run: bool) -> Result<()> {
     if dry_run {
+        let url = ensure_absolute_url(client.server(), &song.url)?;
         println!("{url}");
         return Ok(());
     }
 
-    let player = match player {
-        Some(player) => player.to_owned(),
-        None => which::which("mpv")
-            .map(|path| path.display().to_string())
-            .context("could not find mpv; install mpv or use --player")?,
-    };
+    let bytes = client.stream_bytes(&song.url).await?;
 
-    let status = Command::new(&player)
-        .arg("--no-video")
-        .arg("--force-window=no")
-        .arg(format!("--http-header-fields={auth_header}"))
-        .arg(url)
-        .status()
-        .with_context(|| format!("failed to start player `{player}`"))?;
+    // rodio playback blocks until the track ends, so run it off the async
+    // runtime's worker threads.
+    tokio::task::spawn_blocking(move || decode_and_play(bytes))
+        .await
+        .context("playback task failed")?
+}
 
-    if status.success() {
-        Ok(())
-    } else {
-        Err(anyhow!("player exited with {status}"))
-    }
+fn decode_and_play(bytes: Vec<u8>) -> Result<()> {
+    let handle = rodio::DeviceSinkBuilder::open_default_sink()
+        .context("could not open the default audio output device")?;
+    let player = rodio::Player::connect_new(handle.mixer());
+    let source =
+        rodio::Decoder::new(Cursor::new(bytes)).context("could not decode audio stream")?;
+
+    player.append(source);
+    player.sleep_until_end();
+    Ok(())
 }
