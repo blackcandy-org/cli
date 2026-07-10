@@ -196,7 +196,7 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Command::Login(args) => login(args).await,
-        Command::Logout => logout(),
+        Command::Logout => logout().await,
         Command::Config => show_config(),
         command => {
             let config = Config::load()?;
@@ -240,9 +240,18 @@ async fn login(args: LoginArgs) -> Result<()> {
     Ok(())
 }
 
-fn logout() -> Result<()> {
+async fn logout() -> Result<()> {
+    let config = Config::load()?;
+    if config.api_token.is_some() {
+        let client = configured_client(&config)?;
+        client.logout().await?;
+    }
+
     if remove_config()? {
-        println!("Logged out. Removed config at {}.", config_path()?.display());
+        println!(
+            "Logged out. Removed config at {}.",
+            config_path()?.display()
+        );
     } else {
         println!("Not logged in; nothing to remove.");
     }

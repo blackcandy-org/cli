@@ -104,7 +104,7 @@ blackcandy config
 
 The config file is written with user-only permissions on Unix systems.
 
-To remove the stored credentials, log out:
+To revoke the current server session and remove the stored credentials, log out:
 
 ```sh
 blackcandy logout
