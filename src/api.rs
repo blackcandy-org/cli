@@ -282,6 +282,8 @@ pub struct UserWithToken {
 pub struct SystemInfo {
     pub version: VersionInfo,
     pub min_app_version: VersionInfo,
+    #[serde(default)]
+    pub min_cli_version: Option<VersionInfo>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -301,6 +303,11 @@ impl VersionInfo {
             }
             _ => format!("{}.{}.{}", self.major, self.minor, self.patch),
         }
+    }
+
+    pub fn semver(&self) -> Result<semver::Version> {
+        semver::Version::parse(&self.display())
+            .with_context(|| format!("invalid version returned by server: {}", self.display()))
     }
 }
 
@@ -434,5 +441,17 @@ mod tests {
             parse_server_url("http://localhost:3000").unwrap().as_str(),
             "http://localhost:3000/"
         );
+    }
+
+    #[test]
+    fn parses_prerelease_versions() {
+        let version = VersionInfo {
+            major: 1,
+            minor: 2,
+            patch: 3,
+            pre: Some("rc.1".to_owned()),
+        };
+
+        assert_eq!(version.semver().unwrap().to_string(), "1.2.3-rc.1");
     }
 }

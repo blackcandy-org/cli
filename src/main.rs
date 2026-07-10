@@ -5,6 +5,7 @@ mod player;
 
 use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand};
+use semver::Version;
 use std::io::{self, Write};
 
 use crate::{
@@ -215,6 +216,7 @@ async fn login(args: LoginArgs) -> Result<()> {
     };
 
     let client = ApiClient::new(&server, None)?;
+    ensure_supported_cli_version(&client).await?;
     let response = client.login(&email, &password).await?;
 
     let config = Config {
@@ -234,6 +236,25 @@ async fn login(args: LoginArgs) -> Result<()> {
         }
     );
     println!("Config saved to {}.", config_path()?.display());
+    Ok(())
+}
+
+async fn ensure_supported_cli_version(client: &ApiClient) -> Result<()> {
+    let Some(minimum) = client.system().await?.min_cli_version else {
+        return Ok(());
+    };
+    let current = Version::parse(env!("CARGO_PKG_VERSION"))
+        .expect("CARGO_PKG_VERSION must be a valid semantic version");
+    let minimum_version = minimum.semver()?;
+
+    if current < minimum_version {
+        bail!(
+            "this server requires Black Candy CLI {} or later; you are running {}. Please upgrade and try again.",
+            minimum.display(),
+            current
+        );
+    }
+
     Ok(())
 }
 
@@ -274,6 +295,9 @@ async fn run_authenticated(command: Command, client: ApiClient) -> Result<()> {
             } else {
                 println!("Server: {}", system.version.display());
                 println!("Minimum app version: {}", system.min_app_version.display());
+                if let Some(minimum) = system.min_cli_version {
+                    println!("Minimum CLI version: {}", minimum.display());
+                }
             }
         }
         Command::Search { query, json } => {
