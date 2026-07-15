@@ -1,0 +1,4 @@
+interface:
+  display_name: "Black Candy"
+  short_description: "Manage music with the Black Candy CLI"
+  default_prompt: "Use $blackcandy to find and manage music on my Black Candy server."

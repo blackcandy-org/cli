@@ -2,6 +2,7 @@ mod api;
 mod config;
 mod output;
 mod player;
+mod skill;
 
 use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand};
@@ -50,6 +51,20 @@ enum Command {
     Favorite(FavoriteArgs),
     /// Manage playlists.
     Playlist(PlaylistArgs),
+    /// Print or install the embedded AI agent skill.
+    Skill(SkillArgs),
+}
+
+#[derive(Debug, Args)]
+struct SkillArgs {
+    #[command(subcommand)]
+    command: Option<SkillCommand>,
+}
+
+#[derive(Debug, Subcommand)]
+enum SkillCommand {
+    /// Install the skill for agents that use the shared skills directory.
+    Install,
 }
 
 #[derive(Debug, Args)]
@@ -189,12 +204,24 @@ async fn main() -> Result<()> {
     match cli.command {
         Command::Login(args) => login(args).await,
         Command::Config => show_config(),
+        Command::Skill(args) => run_skill(args),
         command => {
             let config = Config::load()?;
             let client = configured_client(&config)?;
             run_authenticated(command, client).await
         }
     }
+}
+
+fn run_skill(args: SkillArgs) -> Result<()> {
+    match args.command {
+        None => print!("{}", skill::CONTENT),
+        Some(SkillCommand::Install) => {
+            let path = skill::install()?;
+            println!("Installed Black Candy skill to {}.", path.display());
+        }
+    }
+    Ok(())
 }
 
 async fn login(args: LoginArgs) -> Result<()> {
@@ -293,7 +320,9 @@ async fn run_authenticated(command: Command, client: ApiClient) -> Result<()> {
         Command::Queue(args) => run_queue(args, &client).await?,
         Command::Favorite(args) => run_favorite(args, &client).await?,
         Command::Playlist(args) => run_playlist(args, &client).await?,
-        Command::Login(_) | Command::Config => unreachable!("handled before authentication setup"),
+        Command::Login(_) | Command::Config | Command::Skill(_) => {
+            unreachable!("handled before authentication setup")
+        }
     }
 
     Ok(())
