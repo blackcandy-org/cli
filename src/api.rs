@@ -42,6 +42,10 @@ impl ApiClient {
         .await
     }
 
+    pub async fn logout(&self) -> Result<()> {
+        self.delete_empty("my/session").await
+    }
+
     pub async fn system(&self) -> Result<SystemInfo> {
         self.get_without_auth("system", &[]).await
     }

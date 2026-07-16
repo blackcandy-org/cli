@@ -10,7 +10,7 @@ use std::io::{self, Write};
 
 use crate::{
     api::{ApiClient, SongQuery, validate_limit},
-    config::{Config, config_path},
+    config::{Config, config_path, remove_config},
 };
 
 #[derive(Debug, Parser)]
@@ -26,6 +26,8 @@ struct Cli {
 enum Command {
     /// Log in to a Black Candy server and store an API token.
     Login(LoginArgs),
+    /// Log out by removing the stored credentials.
+    Logout,
     /// Show the configured server and current config path.
     Config,
     /// Show Black Candy server version information.
@@ -203,6 +205,7 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Command::Login(args) => login(args).await,
+        Command::Logout => logout().await,
         Command::Config => show_config(),
         Command::Skill(args) => run_skill(args),
         command => {
@@ -264,6 +267,24 @@ async fn login(args: LoginArgs) -> Result<()> {
     Ok(())
 }
 
+async fn logout() -> Result<()> {
+    let config = Config::load()?;
+    if config.api_token.is_some() {
+        let client = configured_client(&config)?;
+        client.logout().await?;
+    }
+
+    if remove_config()? {
+        println!(
+            "Logged out. Removed config at {}.",
+            config_path()?.display()
+        );
+    } else {
+        println!("Not logged in; nothing to remove.");
+    }
+    Ok(())
+}
+
 fn prompt_line(prompt: &str) -> Result<String> {
     print!("{prompt}");
     io::stdout().flush()?;
@@ -320,7 +341,7 @@ async fn run_authenticated(command: Command, client: ApiClient) -> Result<()> {
         Command::Queue(args) => run_queue(args, &client).await?,
         Command::Favorite(args) => run_favorite(args, &client).await?,
         Command::Playlist(args) => run_playlist(args, &client).await?,
-        Command::Login(_) | Command::Config | Command::Skill(_) => {
+        Command::Login(_) | Command::Logout | Command::Config | Command::Skill(_) => {
             unreachable!("handled before authentication setup")
         }
     }
