@@ -101,6 +101,22 @@ blackcandy songs list --limit 10 --json
 blackcandy playlist list --json
 ```
 
+## AI Agent Integration
+
+The repository includes an agent skill with the complete Black Candy CLI workflow at
+[`skills/blackcandy/SKILL.md`](skills/blackcandy/SKILL.md).
+
+The skill is embedded in every binary. Print it for an agent or install it into the
+shared agent skills directory:
+
+```sh
+blackcandy skill
+blackcandy skill install
+```
+
+Installation writes `~/.agents/skills/blackcandy/SKILL.md`, which can be discovered
+by compatible AI coding agents.
+
 ## Configuration
 
 Login stores the server URL, email, and API token in:
